@@ -1,3 +1,36 @@
+import 'package:flutter/material.dart';
+import 'package:trotinette_electrique_fablab/widgets/gmaps.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      // on below line we are specifying title of our app
+      title: 'Ma patinette',
+      // on below line we are hiding debug banner
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        // on below line we are specifying theme
+        primarySwatch: Colors.green,
+      ),
+      // First screen of our app
+      home: const HomePage(),
+    );
+  }
+}
+
+
+
+
+
+/*
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -51,8 +84,8 @@ class MapSampleState extends State<MapSample> {
     );
   }
 
-  /*Future<void> _goToTheLake() async {
+  Future<void> _goToTheLake() async {
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
-  }*/
-}
+  }
+}*/
