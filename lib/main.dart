@@ -4,7 +4,7 @@ import 'package:google_directions_api/google_directions_api.dart';
 
 void main() {
   runApp(const MyApp());
-  DirectionsService.init('AIzaSyAKZciqbtnw7aSe4lwAGlB-AHw6t4GHW6g');
+  DirectionsService.init('AIzaSyAs16bHc0Z5qlDR0XLE_UqFDzjjNeRTQ2U');
 
 }
 

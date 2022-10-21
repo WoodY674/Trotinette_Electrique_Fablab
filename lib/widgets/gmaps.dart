@@ -2,10 +2,11 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_directions_api/google_directions_api.dart';
+//import 'package:google_directions_api/google_directions_api.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -15,19 +16,25 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final directionsService = DirectionsService();
+  /*final directionsService = DirectionsService();
   final request = DirectionsRequest(
     origin: 'Chicago, IL',
     destination: 'San Francisco, CA',
     travelMode: TravelMode.driving,
   );
-
+*/
   final destinationAddressController = TextEditingController();
   String destinationAddress = "";
   LatLng? destinationPos;
 
   Position? _currentPosition;
   String _currentAddress = "";
+
+  PolylinePoints polylinePoints = PolylinePoints();
+  // List of coordinates to join
+  List<LatLng> polylineCoordinates = [];
+  // Map storing polylines created by connecting two points
+  Map<PolylineId, Polyline> polylines = {};
 
   final List<Marker> _markers = <Marker>[];
   Completer<GoogleMapController> _mapController = Completer();
@@ -77,6 +84,45 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     destinationAddressController.dispose();
     super.dispose();
+  }
+
+  _createPolylines(double startLatitude, double startLongitude,
+      double destinationLatitude, double destinationLongitude) async {
+    // Generating the list of coordinates to be used for
+    // drawing the polylines
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+      "AIzaSyAs16bHc0Z5qlDR0XLE_UqFDzjjNeRTQ2U", // Google Maps API Key
+      PointLatLng(startLatitude, startLongitude),
+      PointLatLng(destinationLatitude, destinationLongitude),
+      travelMode: TravelMode.transit,
+    );
+
+    log("####### result polyline: "  + result.errorMessage.toString() + result.points.toString() + ", for point " + startLatitude.toString() + "--" + startLongitude.toString() + "----------"  +destinationLatitude.toString() + "--" + destinationLongitude.toString());
+    // Adding the coordinates to the list
+    if (result.points.isNotEmpty) {
+      setState(() {
+        result.points.forEach((PointLatLng point) {
+          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+        });
+      });
+      log("not empty polyline");
+    }
+
+    // Defining an ID
+    PolylineId id = PolylineId('poly');
+
+    // Initializing Polyline
+    Polyline polyline = Polyline(
+      polylineId: id,
+      color: Colors.red,
+      points: polylineCoordinates,
+      width: 3,
+    );
+
+    // Adding the polyline to the map
+    setState(() {
+      polylines[id] = polyline;
+    });
   }
 
   _addMarker(LatLng pos, String name){
@@ -139,24 +185,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   _setDestination() async {
-    destinationPos = await _getPosFromAddress(destinationAddress);
+    LatLng destPos = await _getPosFromAddress(destinationAddress);
+    setState(() {
+      destinationPos = destPos;
+    });
     _addMarker(destinationPos!, destinationAddress);
-    _centerRoad();
+    _centerRoad(LatLng(_currentPosition!.latitude, _currentPosition!.longitude ),LatLng(destinationPos!.latitude, destinationPos!.longitude ) );
+    _createPolylines(_currentPosition!.latitude, _currentPosition!.longitude,
+      destinationPos!.latitude, destinationPos!.longitude);
   }
 
-  _centerRoad() async {
-    double miny = (_currentPosition!.latitude <= destinationPos!.latitude)
-        ? _currentPosition!.latitude
-        : destinationPos!.latitude;
-    double minx = (_currentPosition!.longitude <= destinationPos!.longitude)
-        ? _currentPosition!.longitude
-        : destinationPos!.longitude;
-    double maxy = (_currentPosition!.latitude <= destinationPos!.latitude)
-        ? destinationPos!.latitude
-        : _currentPosition!.latitude;
-    double maxx = (_currentPosition!.longitude <= destinationPos!.longitude)
-        ? destinationPos!.longitude
-        : _currentPosition!.longitude;
+  _centerRoad(LatLng pos1, LatLng pos2) async {
+    double miny = (pos1.latitude <= pos2.latitude) ? pos1.latitude : pos2.latitude;
+    double minx = (pos1.longitude <= pos2.longitude) ? pos1.longitude : pos2.longitude;
+    double maxy = (pos1.latitude <= pos2.latitude) ? pos2.latitude : pos1.latitude;
+    double maxx = (pos1.longitude <= pos2.longitude) ? pos2.longitude : pos1.longitude;
 
     double southWestLatitude = miny;
     double southWestLongitude = minx;
@@ -186,26 +229,30 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF0F9D58),
-        title: Text("GFG"),
+        title: Text("Ma Patinette"),
       ),
       body: Container(
         child: SafeArea(
           // on below line creating google maps
           child: Column(
             children: [
-              Container(
+              Expanded(
+                child:Container(
                   height: height * .7,
                   width: width,
                   child: GoogleMap(
-                initialCameraPosition: _camPos,
-                markers: Set<Marker>.of(_markers),
-                mapType: MapType.normal,
-                myLocationEnabled: true,
-                compassEnabled: true,
-                onMapCreated: (GoogleMapController controller){
-                  _mapController.complete(controller);
-                },
-              )
+                  initialCameraPosition: _camPos,
+                  markers: Set<Marker>.of(_markers),
+                  polylines: Set<Polyline>.of(polylines.values),
+
+                  mapType: MapType.normal,
+                  myLocationEnabled: true,
+                  compassEnabled: true,
+                  onMapCreated: (GoogleMapController controller){
+                    _mapController.complete(controller);
+                  },
+                )
+              ),
               ),
               Container(
                 height: height * .06,
