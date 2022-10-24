@@ -7,7 +7,6 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-//import 'package:google_directions_api/google_directions_api.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -40,23 +39,26 @@ class _HomePageState extends State<HomePage> {
   );
 
   //endregion
+  Timer? timer;
 
   @override
   void initState() {
     super.initState();
     destinationAddressController.addListener(_updateDestination);
-    _initStartPos();
+    _setUserCurrentPosition(addMarker: false);
+    timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _setUserCurrentPosition(addMarker: false));
   }
 
   @override
   void dispose() {
     destinationAddressController.dispose();
+    timer?.cancel();
     super.dispose();
   }
 
   /// Get user current position.
   /// When it's get, add a marker on map and center camera at user location.
-  void _initStartPos() async {
+  void _setUserCurrentPosition({addMarker:false}) async {
     await getUserCurrentLocation();
     log("#####################" + _currentPosition.toString());
     if (_currentPosition != null) {
@@ -69,7 +71,9 @@ class _HomePageState extends State<HomePage> {
         _currentAddress = _formatAdressFromPlacemark(place!);
       });
 
-      _addMarker(currentLatLng, _currentAddress);
+      if(addMarker) {
+        _addMarker(currentLatLng, _currentAddress);
+      }
       _setCameraPos(currentLatLng);
 
       final GoogleMapController controller = await _mapController.future;
@@ -77,6 +81,10 @@ class _HomePageState extends State<HomePage> {
           CameraUpdate.newLatLng(
               LatLng(_currentPosition!.latitude, _currentPosition!.longitude))
       );
+      controller.animateCamera(
+          CameraUpdate.(
+              LatLng(_currentPosition!.latitude, _currentPosition!.longitude))
+      )
     }
   }
 
@@ -130,19 +138,9 @@ class _HomePageState extends State<HomePage> {
     ));
   }
 
-  _setCameraPos(LatLng pos, {zoom:15.0}){
-    setState(() {
-      _camPos = CameraPosition(
-        target: pos,
-        zoom: zoom,
-      );
-    });
-  }
-
-  // created method for getting user current location
+  /// Get user current location
   Future<Position?> getUserCurrentLocation() async {
     await Geolocator.requestPermission().then((value){
-      log("####### geolocator.then " + value.toString());
     }).onError((error, stackTrace) async {
       await Geolocator.requestPermission();
       log("ERROR"+error.toString());
@@ -152,12 +150,26 @@ class _HomePageState extends State<HomePage> {
     return _currentPosition;
   }
 
+  //region destination
   void _updateDestination(){
     setState(() {
       destinationAddress = destinationAddressController.text;
     });
   }
 
+  _setDestination() async {
+    LatLng destPos = await _getPosFromAddress(destinationAddress);
+    setState(() {
+      destinationPos = destPos;
+    });
+    _addMarker(destinationPos!, destinationAddress);
+    _centerRoad(LatLng(_currentPosition!.latitude, _currentPosition!.longitude ),LatLng(destinationPos!.latitude, destinationPos!.longitude ) );
+    _createPolylines(_currentPosition!.latitude, _currentPosition!.longitude,
+      destinationPos!.latitude, destinationPos!.longitude);
+  }
+  //endregion
+
+  //region helpers
   _formatAdressFromPlacemark(Placemark place){
     return "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
   }
@@ -178,18 +190,9 @@ class _HomePageState extends State<HomePage> {
     List<Location> destinationPlacemark = await locationFromAddress(address);
     return LatLng(destinationPlacemark[0].latitude, destinationPlacemark[0].longitude);
   }
+  //endregion
 
-  _setDestination() async {
-    LatLng destPos = await _getPosFromAddress(destinationAddress);
-    setState(() {
-      destinationPos = destPos;
-    });
-    _addMarker(destinationPos!, destinationAddress);
-    _centerRoad(LatLng(_currentPosition!.latitude, _currentPosition!.longitude ),LatLng(destinationPos!.latitude, destinationPos!.longitude ) );
-    _createPolylines(_currentPosition!.latitude, _currentPosition!.longitude,
-      destinationPos!.latitude, destinationPos!.longitude);
-  }
-
+  //region camera
   _centerRoad(LatLng pos1, LatLng pos2) async {
     double miny = (pos1.latitude <= pos2.latitude) ? pos1.latitude : pos2.latitude;
     double minx = (pos1.longitude <= pos2.longitude) ? pos1.longitude : pos2.longitude;
@@ -214,6 +217,16 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  _setCameraPos(LatLng pos, {zoom:15.0}){
+    setState(() {
+      _camPos = CameraPosition(
+        target: pos,
+        zoom: zoom,
+      );
+    });
+  }
+  //endregion
 
   _toastDisable() {
     if (_mapDisabled) {
