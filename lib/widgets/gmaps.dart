@@ -6,6 +6,7 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:trotinette_electrique_fablab/Infos_patinette.dart';
 //import 'package:google_directions_api/google_directions_api.dart';
 
 class HomePage extends StatefulWidget {
@@ -227,33 +228,35 @@ class _HomePageState extends State<HomePage> {
     double width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF0F9D58),
-        title: Text("Ma Patinette"),
-      ),
+
       body: Container(
         child: SafeArea(
           // on below line creating google maps
           child: Column(
             children: [
               Expanded(
-                child:Container(
-                  height: height * .7,
-                  width: width,
-                  child: GoogleMap(
-                  initialCameraPosition: _camPos,
-                  markers: Set<Marker>.of(_markers),
-                  polylines: Set<Polyline>.of(polylines.values),
+                child: Stack(
+                  children: [
+                      Container(
+                          width: width,
+                          child: GoogleMap(
+                            initialCameraPosition: _camPos,
+                            markers: Set<Marker>.of(_markers),
+                            polylines: Set<Polyline>.of(polylines.values),
 
-                  mapType: MapType.normal,
-                  myLocationEnabled: true,
-                  compassEnabled: true,
-                  onMapCreated: (GoogleMapController controller){
-                    _mapController.complete(controller);
-                  },
-                )
+                            mapType: MapType.normal,
+                            myLocationEnabled: true,
+                            compassEnabled: true,
+                            onMapCreated: (GoogleMapController controller){
+                              _mapController.complete(controller);
+                            },
+                          )
+                      ),
+                    InfoScreen(),
+                  ],
+                ),
               ),
-              ),
+
               Container(
                 height: height * .06,
                 width: width,

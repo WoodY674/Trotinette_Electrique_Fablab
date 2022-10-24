@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-int vitesse = 0;
-int autonomie = 0;
+int speed = 0;
+int autonomy = 0;
 
 void main() {
   runApp(const InfoScreen());
@@ -14,42 +14,45 @@ class InfoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(child: Column(
-        children: [
-      Column(
-      children: [
-      Container(
-      width: 392,
-        height: 100,
-        margin: const EdgeInsets.only(top : 0),
-        padding: const EdgeInsets.only(top: 10),
-        alignment: Alignment.center,
-        decoration:
-        const BoxDecoration(
-          color: Colors.lightGreen,
-
-        ),
-        child: Text('Vitesse : ' + vitesse.toString() + 'Km/h'),
-      ),
-        Container(
-          width: 392,
-          height: 20,
-          margin: const EdgeInsets.only(top : 0),
-          padding: const EdgeInsets.only(top: 0),
-          alignment: Alignment.center,
-          decoration:
-          const BoxDecoration(
-            color: Colors.lightGreen,
-          ),
-          child: Text('Autonomie : ' + autonomie.toString() + 'Km'),
+    return SafeArea(child: Container(
+        margin: EdgeInsetsDirectional.only(start: 50, top: 30),
+        padding: EdgeInsetsDirectional.all(10),
+        height: 60,
+        width: 100 * 2,
+        decoration: BoxDecoration(
+            color: Colors.green,
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(
+              color: Colors.white,
+              width: 2.0,
+            ),
         ),
 
-        ],
+        child:
+            Row(
+              children: [
+                Icon(Icons.battery_full, color: Colors.white),
+                Text(
+                  autonomy.toString() + '%',
+                  style: TextStyle(
+                  color: Colors.white,
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsetsDirectional.only(start: 10, end: 10),
+                ),
+                Icon(Icons.speed, color: Colors.white),
+                Text(speed.toString() + 'Km/h',
+                  style: TextStyle(
+                  color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
       ),
-      ],
-      ),
-
     );
 
+
+    
   }
 }
