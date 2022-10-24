@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
   Completer<GoogleMapController> _mapController = Completer();
 
   CameraPosition _camPos = const CameraPosition(
-    target: LatLng(20.42796133580664, 80.885749655962),
+    target: LatLng(48.856614, 2.3522219),
     zoom: 14.4746,
   );
 
