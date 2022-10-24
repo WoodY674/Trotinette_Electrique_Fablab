@@ -237,22 +237,25 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             children: [
               Expanded(
-                child:Container(
-                  height: height * .7,
-                  width: width,
-                  child: GoogleMap(
-                  initialCameraPosition: _camPos,
-                  markers: Set<Marker>.of(_markers),
-                  polylines: Set<Polyline>.of(polylines.values),
+                child: AbsorbPointer(
+                  absorbing: true, //absorbing: true|false = disable|enable
+                  child:Container(
+                    height: height * .7,
+                    width: width,
+                    child: GoogleMap(
+                      initialCameraPosition: _camPos,
+                      markers: Set<Marker>.of(_markers),
+                      polylines: Set<Polyline>.of(polylines.values),
 
-                  mapType: MapType.normal,
-                  myLocationEnabled: true,
-                  compassEnabled: true,
-                  onMapCreated: (GoogleMapController controller){
-                    _mapController.complete(controller);
-                  },
-                )
-              ),
+                      mapType: MapType.normal,
+                      myLocationEnabled: true,
+                      compassEnabled: true,
+                      onMapCreated: (GoogleMapController controller){
+                        _mapController.complete(controller);
+                      },
+                    )
+                  ),
+                ),
               ),
               Container(
                 height: height * .06,
