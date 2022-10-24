@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:trotinette_electrique_fablab/widgets/gmaps.dart';
-import 'package:google_directions_api/google_directions_api.dart';
 
 void main() {
   runApp(const MyApp());
-  DirectionsService.init('AIzaSyAs16bHc0Z5qlDR0XLE_UqFDzjjNeRTQ2U');
-
 }
 
 class MyApp extends StatelessWidget {

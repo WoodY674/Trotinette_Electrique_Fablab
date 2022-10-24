@@ -6,6 +6,7 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 //import 'package:google_directions_api/google_directions_api.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,6 +17,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  //region init vars
   final destinationAddressController = TextEditingController();
   String destinationAddress = "";
   LatLng? destinationPos;
@@ -25,10 +27,9 @@ class _HomePageState extends State<HomePage> {
   bool _mapDisabled = false;
 
   PolylinePoints polylinePoints = PolylinePoints();
-  // List of coordinates to join
-  List<LatLng> polylineCoordinates = [];
-  // Map storing polylines created by connecting two points
-  Map<PolylineId, Polyline> polylines = {};
+  List<LatLng> polylineCoordinates = []; // List of coordinates to join
+  Map<PolylineId, Polyline> polylines = {
+  }; // Map storing polylines created by connecting two points
 
   final List<Marker> _markers = <Marker>[];
   Completer<GoogleMapController> _mapController = Completer();
@@ -38,27 +39,31 @@ class _HomePageState extends State<HomePage> {
     zoom: 14.4746,
   );
 
+  //endregion
+
   @override
   void initState() {
     super.initState();
     destinationAddressController.addListener(_updateDestination);
     _initStartPos();
-    /*directionsService.route(request,
-            (DirectionsResult response, DirectionsStatus status) {
-          if (status == DirectionsStatus.ok) {
-            // do something with successful response
-          } else {
-            // do something with error response
-          }
-        });*/
   }
 
-  _initStartPos() async {
+  @override
+  void dispose() {
+    destinationAddressController.dispose();
+    super.dispose();
+  }
+
+  /// Get user current position.
+  /// When it's get, add a marker on map and center camera at user location.
+  void _initStartPos() async {
     await getUserCurrentLocation();
     log("#####################" + _currentPosition.toString());
-    if(_currentPosition != null) {
-      LatLng currentLatLng = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
-      Placemark? place = await _getAddressFromPos(LatLng(_currentPosition!.latitude, _currentPosition!.longitude));
+    if (_currentPosition != null) {
+      LatLng currentLatLng = LatLng(
+          _currentPosition!.latitude, _currentPosition!.longitude);
+      Placemark? place = await _getAddressFromPos(
+          LatLng(_currentPosition!.latitude, _currentPosition!.longitude));
 
       setState(() {
         _currentAddress = _formatAdressFromPlacemark(place!);
@@ -69,21 +74,17 @@ class _HomePageState extends State<HomePage> {
 
       final GoogleMapController controller = await _mapController.future;
       controller.animateCamera(
-        CameraUpdate.newLatLng(LatLng(_currentPosition!.latitude, _currentPosition!.longitude))
+          CameraUpdate.newLatLng(
+              LatLng(_currentPosition!.latitude, _currentPosition!.longitude))
       );
     }
   }
 
-  @override
-  void dispose() {
-    destinationAddressController.dispose();
-    super.dispose();
-  }
-
+  /// Connect to google map to get a list of coordinates.
+  /// This will be used to draw itinerary on GoogleMap
   _createPolylines(double startLatitude, double startLongitude,
       double destinationLatitude, double destinationLongitude) async {
-    // Generating the list of coordinates to be used for
-    // drawing the polylines
+    // Generating the list of coordinates to be used for drawing the polylines
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
       "AIzaSyAs16bHc0Z5qlDR0XLE_UqFDzjjNeRTQ2U", // Google Maps API Key
       PointLatLng(startLatitude, startLongitude),
@@ -212,8 +213,22 @@ class _HomePageState extends State<HomePage> {
         100.0,
       ),
     );
-
   }
+
+  _toastDisable() {
+    if (_mapDisabled) {
+      Fluttertoast.showToast(
+          msg: "Ecran désactivé lors du déplacement",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 5,
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+          fontSize: 16.0
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -283,7 +298,15 @@ class _HomePageState extends State<HomePage> {
 
         ),
       ),
-      
+
+        floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _mapDisabled = !_mapDisabled;
+          });
+          _toastDisable();
+        }
+        )
       /*// on pressing floating action button the camera will take to user current location
       floatingActionButton: FloatingActionButton(
         onPressed: () async{
