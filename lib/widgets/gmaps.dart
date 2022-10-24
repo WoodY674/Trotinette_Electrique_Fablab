@@ -16,19 +16,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  /*final directionsService = DirectionsService();
-  final request = DirectionsRequest(
-    origin: 'Chicago, IL',
-    destination: 'San Francisco, CA',
-    travelMode: TravelMode.driving,
-  );
-*/
   final destinationAddressController = TextEditingController();
   String destinationAddress = "";
   LatLng? destinationPos;
 
   Position? _currentPosition;
   String _currentAddress = "";
+  bool _mapDisabled = false;
 
   PolylinePoints polylinePoints = PolylinePoints();
   // List of coordinates to join
@@ -238,23 +232,30 @@ class _HomePageState extends State<HomePage> {
             children: [
               Expanded(
                 child: AbsorbPointer(
-                  absorbing: true, //absorbing: true|false = disable|enable
-                  child:Container(
-                    height: height * .7,
-                    width: width,
-                    child: GoogleMap(
-                      initialCameraPosition: _camPos,
-                      markers: Set<Marker>.of(_markers),
-                      polylines: Set<Polyline>.of(polylines.values),
+                  absorbing: _mapDisabled, //absorbing: true|false = disable|enable
+                    child: ColorFiltered(
+                      colorFilter: ColorFilter.mode(
+                        (_mapDisabled ? Colors.grey : Colors.black),
+                        BlendMode.screen,
+                      ),
 
-                      mapType: MapType.normal,
-                      myLocationEnabled: true,
-                      compassEnabled: true,
-                      onMapCreated: (GoogleMapController controller){
-                        _mapController.complete(controller);
-                      },
-                    )
-                  ),
+                      child:Container(
+                          height: height * .7,
+                          width: width,
+                          child: GoogleMap(
+                            initialCameraPosition: _camPos,
+                            markers: Set<Marker>.of(_markers),
+                            polylines: Set<Polyline>.of(polylines.values),
+
+                            mapType: MapType.normal,
+                            myLocationEnabled: true,
+                            compassEnabled: true,
+                            onMapCreated: (GoogleMapController controller){
+                              _mapController.complete(controller);
+                            },
+                          ),
+                      ),
+                    ),
                 ),
               ),
               Container(
@@ -282,7 +283,7 @@ class _HomePageState extends State<HomePage> {
 
         ),
       ),
-
+      
       /*// on pressing floating action button the camera will take to user current location
       floatingActionButton: FloatingActionButton(
         onPressed: () async{
