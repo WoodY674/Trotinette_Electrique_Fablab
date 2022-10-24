@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Google Maps Demo',
-      home: InfoScreen(),
+      home: MapSample(),
     );
   }
 }
@@ -38,7 +38,7 @@ class MapSampleState extends State<MapSample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GoogleMap(
+      /* body: GoogleMap(
         myLocationEnabled: true,
         myLocationButtonEnabled: true,
         mapType: MapType.normal,
@@ -49,6 +49,9 @@ class MapSampleState extends State<MapSample> {
           _controller.complete(controller);
         },
       ),
+
+       */
+      body: InfoScreen(),
     );
   }
 

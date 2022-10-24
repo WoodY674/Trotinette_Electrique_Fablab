@@ -14,31 +14,31 @@ class InfoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(child: Column(
+    return SafeArea(child: Column(
         children: [
       Column(
       children: [
       Container(
       width: 392,
         height: 100,
-        margin: EdgeInsets.only(top : 0),
-        padding: EdgeInsets.only(top: 10),
+        margin: const EdgeInsets.only(top : 0),
+        padding: const EdgeInsets.only(top: 10),
         alignment: Alignment.center,
         decoration:
-        BoxDecoration(
+        const BoxDecoration(
           color: Colors.lightGreen,
+
         ),
         child: Text('Vitesse : ' + vitesse.toString() + 'Km/h'),
       ),
         Container(
           width: 392,
           height: 20,
-          margin: EdgeInsets.only(top : 0),
-          padding: EdgeInsets.only(top: 0),
+          margin: const EdgeInsets.only(top : 0),
+          padding: const EdgeInsets.only(top: 0),
           alignment: Alignment.center,
           decoration:
-          BoxDecoration(
+          const BoxDecoration(
             color: Colors.lightGreen,
           ),
           child: Text('Autonomie : ' + autonomie.toString() + 'Km'),
@@ -48,11 +48,6 @@ class InfoScreen extends StatelessWidget {
       ),
       ],
       ),
-
-      ),
-
-
-
 
     );
 
