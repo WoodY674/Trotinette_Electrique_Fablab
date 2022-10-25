@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:math' as Math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -7,6 +8,8 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:vector_math/vector_math.dart' as vMath;
+
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -46,7 +49,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     destinationAddressController.addListener(_updateDestination);
     _setUserCurrentPosition(addMarker: false);
-    timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _setUserCurrentPosition(addMarker: false));
+    //timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _setUserCurrentPosition(addMarker: false));
+    timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _doNothing());
   }
 
   @override
@@ -54,6 +58,8 @@ class _HomePageState extends State<HomePage> {
     destinationAddressController.dispose();
     timer?.cancel();
     super.dispose();
+  }
+  _doNothing(){
   }
 
   /// Get user current position.
@@ -76,15 +82,9 @@ class _HomePageState extends State<HomePage> {
       }
       _setCameraPos(currentLatLng);
 
+      LatLng pos = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
       final GoogleMapController controller = await _mapController.future;
-      controller.animateCamera(
-          CameraUpdate.newLatLng(
-              LatLng(_currentPosition!.latitude, _currentPosition!.longitude))
-      );
-      controller.animateCamera(
-          CameraUpdate.(
-              LatLng(_currentPosition!.latitude, _currentPosition!.longitude))
-      )
+      controller.animateCamera(CameraUpdate.newLatLng(pos));
     }
   }
 
@@ -102,6 +102,9 @@ class _HomePageState extends State<HomePage> {
 
     log("####### result polyline: "  + result.errorMessage.toString() + result.points.toString() + ", for point " + startLatitude.toString() + "--" + startLongitude.toString() + "----------"  +destinationLatitude.toString() + "--" + destinationLongitude.toString());
     // Adding the coordinates to the list
+    setState(() {
+      polylineCoordinates = [];
+    });
     if (result.points.isNotEmpty) {
       setState(() {
         result.points.forEach((PointLatLng point) {
@@ -129,6 +132,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   _addMarker(LatLng pos, String name){
+    setState(() {
+      _markers = [];
+    });
     _markers.add(Marker(
         markerId: MarkerId(_markers.length.toString()),
         position: pos,
@@ -166,6 +172,33 @@ class _HomePageState extends State<HomePage> {
     _centerRoad(LatLng(_currentPosition!.latitude, _currentPosition!.longitude ),LatLng(destinationPos!.latitude, destinationPos!.longitude ) );
     _createPolylines(_currentPosition!.latitude, _currentPosition!.longitude,
       destinationPos!.latitude, destinationPos!.longitude);
+
+    final GoogleMapController controller = await _mapController.future;
+    LatLng pos = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
+    controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: pos,
+          zoom: 20,
+          bearing: _angleFromLatLng(pos, destinationPos!)
+        )
+      )
+    );
+  }
+
+  /// get an angle betwween 2 points
+  _angleFromLatLng(LatLng curPos, LatLng nextPos){
+    double lon = (nextPos.longitude - curPos.longitude);
+
+    double y = Math.sin(lon) * Math.cos(nextPos.longitude);
+    double x = Math.cos(curPos.latitude) * Math.sin(nextPos.latitude) - Math.sin(curPos.latitude) * Math.cos(nextPos.latitude) * Math.cos(lon);
+
+    double brng = Math.atan2(y, x);
+    brng = vMath.degrees(brng);
+    brng = (brng + 360) % 360;
+    brng = 360 - brng;
+
+    return brng;
   }
   //endregion
 
