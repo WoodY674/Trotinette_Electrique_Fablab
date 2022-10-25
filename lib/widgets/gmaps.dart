@@ -44,6 +44,9 @@ class _HomePageState extends State<HomePage> {
   //endregion
   Timer? timer;
   int currentPolyIndex = 0;
+  LatLng? simulationLastPos = null;
+  bool isSimulation = true;
+  bool shouldCamFollowRoad = true;
 
   @override
   void initState() {
@@ -61,43 +64,57 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  LatLng? simulationLastPos = null;
-
   _handleUserPosChange() async {
-    //await _setUserCurrentPosition(addMarker: false); //not for simulation
+    if(!isSimulation) {
+      await _setUserCurrentPosition(addMarker: false);
+    }
 
-    log("####### timer action: " + currentPolyIndex.toString() + _currentPosition.toString());
     if(polylineCoordinates.isNotEmpty) {
-      double totalDistance = _calculateDistance(
-          LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-          polylineCoordinates[_handleMinMax(currentPolyIndex, 0, polylineCoordinates.length-1)]);
-      if (totalDistance <=0.5) {
-        currentPolyIndex ++;
-      }
       final GoogleMapController controller = await _mapController.future;
-      LatLng currPos = LatLng(
-          _currentPosition!.latitude, _currentPosition!.longitude);
+      LatLng currPos = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
 
-      LatLng pointPos = polylineCoordinates[_handleMinMax(currentPolyIndex, 0, polylineCoordinates.length-1)];
-      if(simulationLastPos == null) {
-        setState(() {
-          simulationLastPos = currPos;
-        });
+      if(shouldCamFollowRoad){
+        double totalDistance = _calculateDistance(currPos, polylineCoordinates[_handleMinMax(currentPolyIndex, 0, polylineCoordinates.length-1)]);
+        if ((isSimulation && totalDistance <=0.5) || totalDistance<=0.05) {
+          currentPolyIndex ++;
+        }
+        LatLng pointPos = polylineCoordinates[_handleMinMax(currentPolyIndex, 0, polylineCoordinates.length-1)];
+
+        if(simulationLastPos == null) {
+          setState(() {
+            simulationLastPos = currPos;
+          });
+        }
+
+        controller.animateCamera(
+            CameraUpdate.newCameraPosition(
+                CameraPosition(
+                    target: pointPos,
+                    zoom: 20,
+                    //bearing: _angleFromLatLng(currPos, pointPos)
+                    bearing: _angleFromLatLng(simulationLastPos!, pointPos)
+                )
+            )
+        );
+
+        if(isSimulation) {
+          setState(() {
+            simulationLastPos = pointPos;
+          });
+        }
       }
-
-      controller.animateCamera(
-          CameraUpdate.newCameraPosition(
-              CameraPosition(
-                  target: pointPos,
-                  zoom: 20,
-                  //bearing: _angleFromLatLng(currPos, pointPos)
-                  bearing: _angleFromLatLng(simulationLastPos!, pointPos)
-              )
-          )
-      );
-      setState(() {
-        simulationLastPos = pointPos;
-      });
+      else{
+        _centerRoad(currPos, destinationPos!);
+        controller.animateCamera(
+            CameraUpdate.newCameraPosition(
+                CameraPosition(
+                    target: currPos,
+                    zoom: 20,
+                    bearing: _angleFromLatLng(currPos, destinationPos!)
+                )
+            )
+        );
+      }
     }
   }
 
@@ -298,7 +315,7 @@ class _HomePageState extends State<HomePage> {
           northeast: LatLng(northEastLatitude, northEastLongitude),
           southwest: LatLng(southWestLatitude, southWestLongitude),
         ),
-        100.0,
+        70.0,
       ),
     );
   }
@@ -374,38 +391,44 @@ class _HomePageState extends State<HomePage> {
               Container(
                 height: height * .06,
                 width: width,
-                child: TextField(
-                  controller: destinationAddressController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Destination',
-                  ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child:TextField(
+                        controller: destinationAddressController,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Destination',
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width:60,
+                      child:IconButton(
+                        onPressed: _setDestination,
+                        icon: Icon(Icons.golf_course)
+                      )
+                    )
+                  ],
                 ),
               ),
-              Container(
-                height: height * .06,
-                  width: width,
-                  child: IconButton(
-                    onPressed: _setDestination,
-                    icon: Icon(Icons.golf_course)
-                )
-              ),
-
             ],
           )
 
         ),
       ),
 
-        floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
             _mapDisabled = !_mapDisabled;
+            shouldCamFollowRoad = !shouldCamFollowRoad;
           });
           _toastDisable();
           currentPolyIndex ++;
-        }
-        )
+        },
+        backgroundColor: (shouldCamFollowRoad ? Colors.green : Colors.red),
+      )
       /*// on pressing floating action button the camera will take to user current location
       floatingActionButton: FloatingActionButton(
         onPressed: () async{
