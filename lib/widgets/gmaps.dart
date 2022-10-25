@@ -33,7 +33,7 @@ class _HomePageState extends State<HomePage> {
   Map<PolylineId, Polyline> polylines = {
   }; // Map storing polylines created by connecting two points
 
-  final List<Marker> _markers = <Marker>[];
+  List<Marker> _markers = <Marker>[];
   Completer<GoogleMapController> _mapController = Completer();
 
   CameraPosition _camPos = const CameraPosition(
@@ -43,6 +43,7 @@ class _HomePageState extends State<HomePage> {
 
   //endregion
   Timer? timer;
+  int currentPolyIndex = 0;
 
   @override
   void initState() {
@@ -50,7 +51,7 @@ class _HomePageState extends State<HomePage> {
     destinationAddressController.addListener(_updateDestination);
     _setUserCurrentPosition(addMarker: false);
     //timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _setUserCurrentPosition(addMarker: false));
-    timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _doNothing());
+    timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _handleUserPosChange());
   }
 
   @override
@@ -59,12 +60,61 @@ class _HomePageState extends State<HomePage> {
     timer?.cancel();
     super.dispose();
   }
-  _doNothing(){
+
+  LatLng? simulationLastPos = null;
+
+  _handleUserPosChange() async {
+    //await _setUserCurrentPosition(addMarker: false); //not for simulation
+
+    log("####### timer action: " + currentPolyIndex.toString() + _currentPosition.toString());
+    if(polylineCoordinates.isNotEmpty) {
+      double totalDistance = _calculateDistance(
+          LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+          polylineCoordinates[_handleMinMax(currentPolyIndex, 0, polylineCoordinates.length-1)]);
+      if (totalDistance <=0.5) {
+        currentPolyIndex ++;
+      }
+      final GoogleMapController controller = await _mapController.future;
+      LatLng currPos = LatLng(
+          _currentPosition!.latitude, _currentPosition!.longitude);
+
+      LatLng pointPos = polylineCoordinates[_handleMinMax(currentPolyIndex, 0, polylineCoordinates.length-1)];
+      if(simulationLastPos == null) {
+        setState(() {
+          simulationLastPos = currPos;
+        });
+      }
+
+      controller.animateCamera(
+          CameraUpdate.newCameraPosition(
+              CameraPosition(
+                  target: pointPos,
+                  zoom: 20,
+                  //bearing: _angleFromLatLng(currPos, pointPos)
+                  bearing: _angleFromLatLng(simulationLastPos!, pointPos)
+              )
+          )
+      );
+      setState(() {
+        simulationLastPos = pointPos;
+      });
+    }
+  }
+
+  ///Get a distance between 2 points (in km)
+  _calculateDistance(LatLng pos1, LatLng pos2){
+    double p = 0.017453292529943295;
+    double a = 0.5 - Math.cos((pos2.latitude - pos1.latitude) * p) / 2 + Math.cos(pos1.latitude * p) * Math.cos(pos2.latitude * p) * (1 - Math.cos((pos2.longitude - pos1.longitude) * p)) /2;
+    return 12742 * Math.asin(Math.sqrt(a));
+  }
+
+  _handleMinMax(num value, num min, num max){
+    return Math.max(Math.min(value, max), min);
   }
 
   /// Get user current position.
   /// When it's get, add a marker on map and center camera at user location.
-  void _setUserCurrentPosition({addMarker:false}) async {
+  _setUserCurrentPosition({addMarker:false}) async {
     await getUserCurrentLocation();
     log("#####################" + _currentPosition.toString());
     if (_currentPosition != null) {
@@ -103,7 +153,9 @@ class _HomePageState extends State<HomePage> {
     log("####### result polyline: "  + result.errorMessage.toString() + result.points.toString() + ", for point " + startLatitude.toString() + "--" + startLongitude.toString() + "----------"  +destinationLatitude.toString() + "--" + destinationLongitude.toString());
     // Adding the coordinates to the list
     setState(() {
-      polylineCoordinates = [];
+       while(polylineCoordinates.isNotEmpty){
+        polylineCoordinates.removeLast();
+      }
     });
     if (result.points.isNotEmpty) {
       setState(() {
@@ -351,6 +403,7 @@ class _HomePageState extends State<HomePage> {
             _mapDisabled = !_mapDisabled;
           });
           _toastDisable();
+          currentPolyIndex ++;
         }
         )
       /*// on pressing floating action button the camera will take to user current location
