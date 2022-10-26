@@ -44,9 +44,11 @@ class _HomePageState extends State<HomePage> {
   //endregion
   Timer? timer;
   int currentPolyIndex = 0;
-  LatLng? simulationLastPos = null;
+  LatLng? lastPos = null;
   bool isSimulation = true;
   bool shouldCamFollowRoad = true;
+  int timerReqTime = 5; // in seconds
+  double speed = 0.0;
 
   @override
   void initState() {
@@ -54,7 +56,7 @@ class _HomePageState extends State<HomePage> {
     destinationAddressController.addListener(_updateDestination);
     _setUserCurrentPosition(addMarker: false);
     //timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _setUserCurrentPosition(addMarker: false));
-    timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _handleUserPosChange());
+    timer = Timer.periodic(Duration(seconds: timerReqTime), (Timer timer) => _handleUserPosChange());
   }
 
   @override
@@ -62,6 +64,13 @@ class _HomePageState extends State<HomePage> {
     destinationAddressController.dispose();
     timer?.cancel();
     super.dispose();
+  }
+
+  _calculVitesse(LatLng pos1, LatLng pos2){
+   setState(() {
+     speed = _calculateDistance(pos1, pos2) / timerReqTime * 3600;
+   });
+   log("######## VITESSE = " + speed.toString());
   }
 
   _handleUserPosChange() async {
@@ -80,9 +89,9 @@ class _HomePageState extends State<HomePage> {
         }
         LatLng pointPos = polylineCoordinates[_handleMinMax(currentPolyIndex, 0, polylineCoordinates.length-1)];
 
-        if(simulationLastPos == null) {
+        if(lastPos == null) {
           setState(() {
-            simulationLastPos = currPos;
+            lastPos = currPos;
           });
         }
 
@@ -92,16 +101,16 @@ class _HomePageState extends State<HomePage> {
                     target: pointPos,
                     zoom: 20,
                     //bearing: _angleFromLatLng(currPos, pointPos)
-                    bearing: _angleFromLatLng(simulationLastPos!, pointPos)
+                    bearing: _angleFromLatLng(lastPos!, pointPos)
                 )
             )
         );
+        _calculVitesse(currPos, lastPos!);
 
-        if(isSimulation) {
-          setState(() {
-            simulationLastPos = pointPos;
-          });
-        }
+        setState(() {
+          lastPos = (isSimulation ? pointPos : currPos);
+        });
+
       }
       else{
         _centerRoad(currPos, destinationPos!);
