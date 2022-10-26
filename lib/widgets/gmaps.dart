@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
     zoom: 14.4746,
   );
 
-  //endregion
+
   Timer? timer;
   int currentPolyIndex = 0;
   LatLng? lastPos = null;
@@ -51,6 +51,7 @@ class _HomePageState extends State<HomePage> {
   bool shouldCamFollowRoad = true;
   int timerReqTime = 5; // in seconds
   double speed = 0.0;
+  //endregion
 
   @override
   void initState() {
@@ -64,10 +65,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     destinationAddressController.dispose();
-    timer?.cancel();
+    //timer?.cancel();
     super.dispose();
   }
 
+  //region functions
   _calculVitesse(LatLng pos1, LatLng pos2){
    setState(() {
      speed = _calculateDistance(pos1, pos2) / timerReqTime * 3600;
@@ -355,6 +357,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  //endregion
 
   @override
   Widget build(BuildContext context) {
@@ -377,12 +380,11 @@ class _HomePageState extends State<HomePage> {
                           absorbing: _mapDisabled, //absorbing: true|false = disable|enable
                           child: ColorFiltered(
                           colorFilter: ColorFilter.mode(
-                            (_mapDisabled ? Colors.grey : Colors.black),
+                            (_mapDisabled ? Colors.grey.withOpacity(.3) : Colors.black.withOpacity(0)),
                             BlendMode.screen,
                           ),
 
                         child:Container(
-                          height: height * .7,
                           width: width,
                           child: GoogleMap(
                             initialCameraPosition: _camPos,

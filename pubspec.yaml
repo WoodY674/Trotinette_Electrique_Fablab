@@ -30,7 +30,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  google_maps_flutter: ^2.1.0
+  google_maps_flutter: ^2.2.1
   geolocator: ^9.0.2
   google_directions_api: ^0.9.1
   geocoding: ^2.0.0
