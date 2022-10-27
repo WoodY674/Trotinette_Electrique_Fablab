@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:math' as Math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:trotinette_electrique_fablab/widgets/Infos_patinette.dart';
-//import 'package:google_directions_api/google_directions_api.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:vector_math/vector_math.dart' as vMath;
+import 'package:trotinette_electrique_fablab/widgets/custom_map.dart';
+import 'package:trotinette_electrique_fablab/widgets/destination_input.dart';
+import 'package:trotinette_electrique_fablab/helpers/calcul.dart';
+import 'package:trotinette_electrique_fablab/helpers/map.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -24,176 +24,159 @@ class _HomePageState extends State<HomePage> {
   //region init vars
   final destinationAddressController = TextEditingController();
   String destinationAddress = "";
-  LatLng? destinationPos;
+  LatLng? destinationCoordinates;
 
   Position? _currentPosition;
+  LatLng? _currentCoordinates;
   String _currentAddress = "";
   bool _mapDisabled = false;
 
   PolylinePoints polylinePoints = PolylinePoints();
   List<LatLng> polylineCoordinates = []; // List of coordinates to join
-  Map<PolylineId, Polyline> polylines = {
-  }; // Map storing polylines created by connecting two points
+  Map<PolylineId, Polyline> polylines = {}; // Map storing polylines created by connecting two points
 
   List<Marker> _markers = <Marker>[];
   Completer<GoogleMapController> _mapController = Completer();
 
   CameraPosition _camPos = const CameraPosition(
-    target: LatLng(48.856614, 2.3522219),
-    zoom: 14.4746,
+    target: LatLng(48.856614, 2.3522219), //Paris
+    zoom: 15,
   );
 
 
   Timer? timer;
-  int currentPolyIndex = 0;
-  LatLng? lastPos = null;
-  bool isSimulation = true;
+  int timerTimeInterval = 5; // in seconds
+  int currentPolylineIndex = 0;
+  LatLng? lastCoordinate;
   bool shouldCamFollowRoad = true;
-  int timerReqTime = 5; // in seconds
   double speed = 0.0;
+
+  bool isSimulation = true;
   //endregion
 
+  //region override function (init, dispose ...)
   @override
   void initState() {
     super.initState();
-    destinationAddressController.addListener(_updateDestination);
+    destinationAddressController.addListener(_updateDestinationAddress);
     _setUserCurrentPosition(addMarker: false);
     //timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _setUserCurrentPosition(addMarker: false));
-    timer = Timer.periodic(Duration(seconds: timerReqTime), (Timer timer) => _handleUserPosChange());
+    timer = Timer.periodic(Duration(seconds: timerTimeInterval), (Timer timer) => _handleUserPosChange());
   }
 
   @override
   void dispose() {
     destinationAddressController.dispose();
-    //timer?.cancel();
+    timer?.cancel();
     super.dispose();
   }
+  //endregion
 
   //region functions
-  _calculVitesse(LatLng pos1, LatLng pos2){
+  _setSpeed(LatLng pos1, LatLng pos2){
    setState(() {
-     speed = _calculateDistance(pos1, pos2) / timerReqTime * 3600;
+     speed = calculateDistance(pos1, pos2) / timerTimeInterval * 3600;
    });
-   log("######## VITESSE = " + speed.toString());
   }
 
+  /// Handle user position change on map.
+  /// if there is an itinerary :
+  ///   - camera could follow the user and rotate cam to heading the road
+  ///   - camera could show the entire itinary with large zoom-out
   _handleUserPosChange() async {
     if(!isSimulation) {
       await _setUserCurrentPosition(addMarker: false);
     }
 
     if(polylineCoordinates.isNotEmpty) {
-      final GoogleMapController controller = await _mapController.future;
-      LatLng currPos = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
+      LatLng currPos = _currentCoordinates!;
 
       if(shouldCamFollowRoad){
-        double totalDistance = _calculateDistance(currPos, polylineCoordinates[_handleMinMax(currentPolyIndex, 0, polylineCoordinates.length-1)]);
+        //check if the next point to pass is near the user
+        double totalDistance = calculateDistance(currPos, polylineCoordinates[handleMinMax(currentPolylineIndex, 0, polylineCoordinates.length-1).toInt()]);
         if ((isSimulation && totalDistance <=0.5) || totalDistance<=0.05) {
-          currentPolyIndex ++;
+          currentPolylineIndex ++;
         }
-        LatLng pointPos = polylineCoordinates[_handleMinMax(currentPolyIndex, 0, polylineCoordinates.length-1)];
+        LatLng nextCoordinates = polylineCoordinates[handleMinMax(currentPolylineIndex, 0, polylineCoordinates.length-1).toInt()];
 
-        if(lastPos == null) {
+        //init a value for lastCoordinate at user position
+        if(lastCoordinate == null) {
           setState(() {
-            lastPos = currPos;
+            lastCoordinate = currPos;
           });
         }
 
-        controller.animateCamera(
-            CameraUpdate.newCameraPosition(
-                CameraPosition(
-                    target: pointPos,
-                    zoom: 20,
-                    //bearing: _angleFromLatLng(currPos, pointPos)
-                    bearing: _angleFromLatLng(lastPos!, pointPos)
-                )
-            )
-        );
-        _calculVitesse(currPos, lastPos!);
+        moveCameraWithAngle(_mapController, lastCoordinate!, nextCoordinates);
+        _setSpeed(currPos, lastCoordinate!);
 
+        //on simulation, the last coordinates is fake using a polyline item coordinates
         setState(() {
-          lastPos = (isSimulation ? pointPos : currPos);
+          lastCoordinate = (isSimulation ? nextCoordinates : currPos);
         });
-
       }
       else{
-        _centerRoad(currPos, destinationPos!);
-        controller.animateCamera(
-            CameraUpdate.newCameraPosition(
-                CameraPosition(
-                    target: currPos,
-                    zoom: 20,
-                    bearing: _angleFromLatLng(currPos, destinationPos!)
-                )
-            )
-        );
+        // on second mode, we center the road on the map, with the basic camera orientation
+        centerRoad(_mapController, currPos, destinationCoordinates!);
+        moveCameraWithAngle(_mapController, currPos, destinationCoordinates!);
       }
     }
   }
 
-  ///Get a distance between 2 points (in km)
-  _calculateDistance(LatLng pos1, LatLng pos2){
-    double p = 0.017453292529943295;
-    double a = 0.5 - Math.cos((pos2.latitude - pos1.latitude) * p) / 2 + Math.cos(pos1.latitude * p) * Math.cos(pos2.latitude * p) * (1 - Math.cos((pos2.longitude - pos1.longitude) * p)) /2;
-    return 12742 * Math.asin(Math.sqrt(a));
+  _setCurrentPosition(Position? pos){
+    setState(() {
+      _currentPosition = pos;
+      if(pos != null) {
+        _currentCoordinates = LatLng(pos.latitude, pos.longitude);
+      }
+    });
   }
 
-  _handleMinMax(num value, num min, num max){
-    return Math.max(Math.min(value, max), min);
-  }
-
-  /// Get user current position.
+  /// Get user current position and address.
   /// When it's get, add a marker on map and center camera at user location.
   _setUserCurrentPosition({addMarker:false}) async {
-    await getUserCurrentLocation();
+    Position? userPos = await getUserCurrentLocation();
+    _setCurrentPosition(userPos);
+
     log("#####################" + _currentPosition.toString());
     if (_currentPosition != null) {
-      LatLng currentLatLng = LatLng(
-          _currentPosition!.latitude, _currentPosition!.longitude);
-      Placemark? place = await _getAddressFromPos(
-          LatLng(_currentPosition!.latitude, _currentPosition!.longitude));
-
+      Placemark? place = await getAddressFromPos(_currentCoordinates!);
       setState(() {
-        _currentAddress = _formatAdressFromPlacemark(place!);
+        _currentAddress = formatAdressFromPlacemark(place!);
       });
 
       if(addMarker) {
-        _addMarker(currentLatLng, _currentAddress);
+        _addMarker(_currentCoordinates!, _currentAddress);
       }
-      _setCameraPos(currentLatLng);
-
-      LatLng pos = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
-      final GoogleMapController controller = await _mapController.future;
-      controller.animateCamera(CameraUpdate.newLatLng(pos));
+      _setCameraPos(_currentCoordinates!);
     }
   }
 
   /// Connect to google map to get a list of coordinates.
   /// This will be used to draw itinerary on GoogleMap
-  _createPolylines(double startLatitude, double startLongitude,
-      double destinationLatitude, double destinationLongitude) async {
+  _createPolylines(LatLng startPos, LatLng destinationPos) async {
     // Generating the list of coordinates to be used for drawing the polylines
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
       "AIzaSyAs16bHc0Z5qlDR0XLE_UqFDzjjNeRTQ2U", // Google Maps API Key
-      PointLatLng(startLatitude, startLongitude),
-      PointLatLng(destinationLatitude, destinationLongitude),
+      PointLatLng(startPos.latitude, startPos.longitude),
+      PointLatLng(destinationPos.latitude, destinationPos.longitude),
       travelMode: TravelMode.transit,
     );
 
-    log("####### result polyline: "  + result.errorMessage.toString() + result.points.toString() + ", for point " + startLatitude.toString() + "--" + startLongitude.toString() + "----------"  +destinationLatitude.toString() + "--" + destinationLongitude.toString());
-    // Adding the coordinates to the list
+    log("####### result polyline: "  + result.errorMessage.toString() + result.points.toString() + ", for point " + startPos.latitude.toString() + "--" + startPos.longitude.toString() + "----------"  +destinationPos.latitude.toString() + "--" + destinationPos.longitude.toString());
+    //remove all previous coordinates
     setState(() {
        while(polylineCoordinates.isNotEmpty){
         polylineCoordinates.removeLast();
       }
     });
+
+    // Adding the coordinates to the list
     if (result.points.isNotEmpty) {
       setState(() {
         result.points.forEach((PointLatLng point) {
           polylineCoordinates.add(LatLng(point.latitude, point.longitude));
         });
       });
-      log("not empty polyline");
     }
 
     // Defining an ID
@@ -213,10 +196,12 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  /// Remove markers on map and add a new one.
   _addMarker(LatLng pos, String name){
     setState(() {
       _markers = [];
     });
+
     _markers.add(Marker(
         markerId: MarkerId(_markers.length.toString()),
         position: pos,
@@ -226,122 +211,40 @@ class _HomePageState extends State<HomePage> {
     ));
   }
 
-  /// Get user current location
-  Future<Position?> getUserCurrentLocation() async {
-    await Geolocator.requestPermission().then((value){
-    }).onError((error, stackTrace) async {
-      await Geolocator.requestPermission();
-      log("ERROR"+error.toString());
-    });
-    _currentPosition = await Geolocator.getCurrentPosition();
-    log("############ before return " + _currentPosition.toString());
-    return _currentPosition;
-  }
 
-  //region destination
-  void _updateDestination(){
+  void _updateDestinationAddress(){
     setState(() {
       destinationAddress = destinationAddressController.text;
     });
   }
 
+  /// Set destination, then add marker, generate and center camera on itinerary.
   _setDestination() async {
-    LatLng destPos = await _getPosFromAddress(destinationAddress);
+    LatLng destPos = await getPosFromAddress(destinationAddress);
     setState(() {
-      destinationPos = destPos;
+      destinationCoordinates = destPos;
     });
-    _addMarker(destinationPos!, destinationAddress);
-    _centerRoad(LatLng(_currentPosition!.latitude, _currentPosition!.longitude ),LatLng(destinationPos!.latitude, destinationPos!.longitude ) );
-    _createPolylines(_currentPosition!.latitude, _currentPosition!.longitude,
-      destinationPos!.latitude, destinationPos!.longitude);
+    _addMarker(destinationCoordinates!, destinationAddress);
+    centerRoad(_mapController, _currentCoordinates!, destPos );
+    _createPolylines(_currentCoordinates!, destPos);
 
-    final GoogleMapController controller = await _mapController.future;
-    LatLng pos = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
-    controller.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: pos,
-          zoom: 20,
-          bearing: _angleFromLatLng(pos, destinationPos!)
-        )
-      )
-    );
+    moveCameraWithAngle(_mapController, _currentCoordinates!, destinationCoordinates!);
   }
 
-  /// get an angle betwween 2 points
-  _angleFromLatLng(LatLng curPos, LatLng nextPos){
-    double lon = (nextPos.longitude - curPos.longitude);
 
-    double y = Math.sin(lon) * Math.cos(nextPos.longitude);
-    double x = Math.cos(curPos.latitude) * Math.sin(nextPos.latitude) - Math.sin(curPos.latitude) * Math.cos(nextPos.latitude) * Math.cos(lon);
-
-    double brng = Math.atan2(y, x);
-    brng = vMath.degrees(brng);
-    brng = (brng + 360) % 360;
-    brng = 360 - brng;
-
-    return brng;
-  }
-  //endregion
-
-  //region helpers
-  _formatAdressFromPlacemark(Placemark place){
-    return "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
-  }
-
-  Future<Placemark?> _getAddressFromPos(LatLng pos) async {
-    try {
-      List<Placemark> p = await placemarkFromCoordinates(pos.latitude, pos.longitude);
-      // Taking the most probable result
-      Placemark place = p[0];
-      return place;
-    } catch (e) {
-      print(e);
-    }
-    return null;
-  }
-
-  Future<LatLng> _getPosFromAddress(String address) async {
-    List<Location> destinationPlacemark = await locationFromAddress(address);
-    return LatLng(destinationPlacemark[0].latitude, destinationPlacemark[0].longitude);
-  }
-  //endregion
-
-  //region camera
-  _centerRoad(LatLng pos1, LatLng pos2) async {
-    double miny = (pos1.latitude <= pos2.latitude) ? pos1.latitude : pos2.latitude;
-    double minx = (pos1.longitude <= pos2.longitude) ? pos1.longitude : pos2.longitude;
-    double maxy = (pos1.latitude <= pos2.latitude) ? pos2.latitude : pos1.latitude;
-    double maxx = (pos1.longitude <= pos2.longitude) ? pos2.longitude : pos1.longitude;
-
-    double southWestLatitude = miny;
-    double southWestLongitude = minx;
-
-    double northEastLatitude = maxy;
-    double northEastLongitude = maxx;
-
-    // Accommodate the two locations within the camera view of the map
-    final GoogleMapController controller = await _mapController.future;
-    controller.animateCamera(
-      CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-          northeast: LatLng(northEastLatitude, northEastLongitude),
-          southwest: LatLng(southWestLatitude, southWestLongitude),
-        ),
-        70.0,
-      ),
-    );
-  }
-
-  _setCameraPos(LatLng pos, {zoom:15.0}){
+  void _setCameraPos(LatLng pos, {zoom:15.0, move:true}) async {
     setState(() {
       _camPos = CameraPosition(
         target: pos,
         zoom: zoom,
       );
     });
+
+    if(move) {
+      final GoogleMapController controller = await _mapController.future;
+      controller.animateCamera(CameraUpdate.newLatLng(pos));
+    }
   }
-  //endregion
 
   _toastDisable() {
     if (_mapDisabled) {
@@ -361,11 +264,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
-
     return Scaffold(
-
       body: Container(
         child: SafeArea(
           // on below line creating google maps
@@ -374,65 +273,20 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: Stack(
                   children: [
-                    Container(
-                        width: width,
-                        child: AbsorbPointer(
-                          absorbing: _mapDisabled, //absorbing: true|false = disable|enable
-                          child: ColorFiltered(
-                          colorFilter: ColorFilter.mode(
-                            (_mapDisabled ? Colors.grey.withOpacity(.3) : Colors.black.withOpacity(0)),
-                            BlendMode.screen,
-                          ),
-
-                        child:Container(
-                          width: width,
-                          child: GoogleMap(
-                            initialCameraPosition: _camPos,
-                            markers: Set<Marker>.of(_markers),
-                            polylines: Set<Polyline>.of(polylines.values),
-
-                            mapType: MapType.normal,
-                            myLocationEnabled: true,
-                            compassEnabled: true,
-                            onMapCreated: (GoogleMapController controller){
-                              _mapController.complete(controller);
-                            },
-                          )
-                        )
-                      )
+                    CustomMap(
+                        disabled: _mapDisabled,
+                        cameraPosition: _camPos,
+                        markers: _markers,
+                        polylines: polylines,
+                        mapController: _mapController
                     ),
-                  ),
-                  InfoScreen(),
-                ]
+                    InfoScreen(),
+                  ]
                 ),
               ),
-              Container(
-                height: height * .06,
-                width: width,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child:TextField(
-                        controller: destinationAddressController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Destination',
-                        ),
-                      ),
-                    ),
-                    Container(
-                      width:60,
-                      child:IconButton(
-                        onPressed: _setDestination,
-                        icon: Icon(Icons.golf_course)
-                      )
-                    )
-                  ],
-                ),
-              ),
+              DestinationInput(controller: destinationAddressController, onSubmit: _setDestination,)
             ],
           )
-
         ),
       ),
 
@@ -443,7 +297,7 @@ class _HomePageState extends State<HomePage> {
             shouldCamFollowRoad = !shouldCamFollowRoad;
           });
           _toastDisable();
-          currentPolyIndex ++;
+          currentPolylineIndex ++;
         },
         backgroundColor: (shouldCamFollowRoad ? Colors.green : Colors.red),
       )
