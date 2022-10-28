@@ -7,6 +7,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:trotinette_electrique_fablab/widgets/Infos_patinette.dart';
+import 'package:trotinette_electrique_fablab/widgets/button_gps_mode.dart';
 import 'package:trotinette_electrique_fablab/widgets/custom_map.dart';
 import 'package:trotinette_electrique_fablab/widgets/destination_input.dart';
 import 'package:trotinette_electrique_fablab/helpers/calcul.dart';
@@ -58,9 +59,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    destinationAddressController.addListener(_updateDestinationAddress);
-    _setUserCurrentPosition(addMarker: false);
-    //timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _setUserCurrentPosition(addMarker: false));
+    destinationAddressController.addListener(_handleDestinationAddress);
+    _handleUserPosition(addMarker: false);
+    //timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _handleUserPosition(addMarker: false));
     timer = Timer.periodic(Duration(seconds: timerTimeInterval), (Timer timer) => _handleUserPosChange());
   }
 
@@ -85,7 +86,7 @@ class _HomePageState extends State<HomePage> {
   ///   - camera could show the entire itinary with large zoom-out
   _handleUserPosChange() async {
     if(!isSimulation) {
-      await _setUserCurrentPosition(addMarker: false);
+      await _handleUserPosition(addMarker: false);
     }
 
     if(polylineCoordinates.isNotEmpty) {
@@ -116,8 +117,9 @@ class _HomePageState extends State<HomePage> {
       }
       else{
         // on second mode, we center the road on the map, with the basic camera orientation
-        centerRoad(_mapController, currPos, destinationCoordinates!);
         moveCameraWithAngle(_mapController, currPos, destinationCoordinates!);
+        centerRoad(_mapController, currPos, destinationCoordinates!);
+
       }
     }
   }
@@ -133,7 +135,7 @@ class _HomePageState extends State<HomePage> {
 
   /// Get user current position and address.
   /// When it's get, add a marker on map and center camera at user location.
-  _setUserCurrentPosition({addMarker:false}) async {
+  _handleUserPosition({addMarker:false}) async {
     Position? userPos = await getUserCurrentLocation();
     _setCurrentPosition(userPos);
 
@@ -212,14 +214,14 @@ class _HomePageState extends State<HomePage> {
   }
 
 
-  void _updateDestinationAddress(){
+  void _handleDestinationAddress(){
     setState(() {
       destinationAddress = destinationAddressController.text;
     });
   }
 
   /// Set destination, then add marker, generate and center camera on itinerary.
-  _setDestination() async {
+  _handleDestinationSubmit() async {
     LatLng destPos = await getPosFromAddress(destinationAddress);
     setState(() {
       destinationCoordinates = destPos;
@@ -260,6 +262,23 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+//@todo : use onMovement, to enabled/disable map
+  /// should be launch when the user is moving
+  _onMovement(){
+    setState(() {
+      _mapDisabled = !_mapDisabled;
+    });
+    _toastDisable();
+
+  }
+
+  _setCameraMode(){
+    log("######## click cam mode");
+    setState(() {
+      shouldCamFollowRoad = !shouldCamFollowRoad;
+    });
+  }
+
   //endregion
 
   @override
@@ -281,15 +300,24 @@ class _HomePageState extends State<HomePage> {
                         mapController: _mapController
                     ),
                     InfoScreen(),
+                    ButtonGpsMode(
+                      onPress: _setCameraMode,
+                      shouldCamFollowRoad: shouldCamFollowRoad,
+                    )
                   ]
                 ),
               ),
-              DestinationInput(controller: destinationAddressController, onSubmit: _setDestination,)
+              DestinationInput(
+                controller: destinationAddressController,
+                onSubmit: _handleDestinationSubmit,
+              )
             ],
           )
         ),
       ),
 
+      /*
+      // for test purpose
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
@@ -301,7 +329,8 @@ class _HomePageState extends State<HomePage> {
         },
         backgroundColor: (shouldCamFollowRoad ? Colors.green : Colors.red),
       )
-     
+     */
     );
   }
+
 }

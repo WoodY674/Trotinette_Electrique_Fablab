@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:trotinette_electrique_fablab/widgets/gmaps.dart';
+import 'package:trotinette_electrique_fablab/widgets/home.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       // on below line we are specifying title of our app
-      title: 'Ma patinette',
+      title: 'Ma batinette',
       // on below line we are hiding debug banner
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

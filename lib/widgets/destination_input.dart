@@ -47,7 +47,7 @@ class _DestinationInputState extends State<DestinationInput> {
               width:60,
               child:IconButton(
                   onPressed: () => {widget.onSubmit()},
-                  icon: Icon(Icons.golf_course)
+                  icon: Icon(Icons.send)
               )
           )
         ],

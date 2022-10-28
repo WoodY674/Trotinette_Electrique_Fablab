@@ -35,31 +35,30 @@ class _CustomMapState extends State<CustomMap> {
     return Container(
       width: width,
       child: AbsorbPointer(
-          absorbing: widget.disabled, //absorbing: true|false = disable|enable
-          child: ColorFiltered(
-              colorFilter: ColorFilter.mode(
-                (widget.disabled ? Colors.grey.withOpacity(.3) : Colors.black.withOpacity(0)),
-                BlendMode.screen,
-              ),
+        absorbing: widget.disabled, //absorbing: true|false = disable|enable
+        child: ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            (widget.disabled ? Colors.grey.withOpacity(.3) : Colors.black.withOpacity(0)),
+            BlendMode.screen,
+          ),
 
-              child:Container(
-                  width: width,
-                  child: GoogleMap(
-                    initialCameraPosition: widget.cameraPosition,
-                    markers: Set<Marker>.of(widget.markers),
-                    polylines: Set<Polyline>.of(widget.polylines.values),
+          child:Container(
+            width: width,
+            child: GoogleMap(
+              initialCameraPosition: widget.cameraPosition,
+              markers: Set<Marker>.of(widget.markers),
+              polylines: Set<Polyline>.of(widget.polylines.values),
 
-                    mapType: MapType.normal,
-                    myLocationEnabled: true,
-                    compassEnabled: true,
-                    onMapCreated: (GoogleMapController controller){
-                      widget.mapController.complete(controller);
-                    },
-                  )
-              )
+              mapType: MapType.normal,
+              myLocationEnabled: true,
+              compassEnabled: true,
+              onMapCreated: (GoogleMapController controller){
+                widget.mapController.complete(controller);
+              },
+            )
           )
+        )
       ),
     );
   }
-
 }
