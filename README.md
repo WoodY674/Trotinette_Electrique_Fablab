@@ -8,9 +8,9 @@ durant notre année de M1 M2i lead dev
 
 
 ## Sommaire
-I. [Application Flutter](#application-flutter)
-II. [Api Raspberry](#api-raspberry)
-III. [Arduino](#arduino)
+ 1. [Application Flutter](#application-flutter)
+ 2. [Api Raspberry](#api-raspberry)
+ 3. [Arduino](#arduino)
 
 
 # Application Flutter
