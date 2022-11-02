@@ -11,7 +11,7 @@ Wants=network.target
 Type=simple
 User=emerick
 WorkingDirectory=/var/api/
-ExecStart=sh start.sh
+ExecStart=sh shell_script/start.sh
 Restart=always
 KillMode=process
 
