@@ -53,10 +53,10 @@ class _InfoScreen extends State<InfoScreen> {
   Widget build(BuildContext context) {
 
     return SafeArea(child: Container(
-        margin: const EdgeInsetsDirectional.only(start: 50, top: 30, end: 50),
+        margin: const EdgeInsetsDirectional.only(start: 70, top: 10),
         padding: const EdgeInsetsDirectional.all(10),
-        height: 60,
-        width: 90 * 3,
+        height: 50,
+        width: 80 * 3,
         decoration: BoxDecoration(
             color: Colors.green,
             borderRadius: BorderRadius.circular(25),
