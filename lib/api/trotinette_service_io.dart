@@ -8,7 +8,7 @@ class ActivityServiceApi {
 
   Future<Patinette> getTrotinetteData() async {
     final response = await api.client
-        .get(Uri.parse(api.host + 'battery'));
+        .get(Uri.parse(api.host + 'allData'));
     if (response.statusCode == 200) {
       return Patinette.fromJson(jsonDecode(response.body));
     } else {
