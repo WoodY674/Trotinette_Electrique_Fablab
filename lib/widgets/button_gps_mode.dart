@@ -47,7 +47,7 @@ class _ButtonGpsMode extends State<ButtonGpsMode> {
         ),
 
         child: IconButton(
-          icon: Icon((shouldCamFollowRoad ? Icons.explore : Icons.map)),
+          icon: Icon((shouldCamFollowRoad ? Icons.explore : Icons.map), color: Colors.white),
           onPressed: (){
             widget.onPress();
             setState(() {
