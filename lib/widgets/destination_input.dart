@@ -37,7 +37,7 @@ class _DestinationInputState extends State<DestinationInput> {
           Expanded(
             child:TextField(
               controller: destinationAddressController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Destination',
               ),
@@ -47,7 +47,7 @@ class _DestinationInputState extends State<DestinationInput> {
               width:60,
               child:IconButton(
                   onPressed: () => {widget.onSubmit()},
-                  icon: Icon(Icons.send)
+                  icon: const Icon(Icons.send)
               )
           )
         ],

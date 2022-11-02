@@ -2,32 +2,12 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:trotinette_electrique_fablab/const.dart';
 import 'package:trotinette_electrique_fablab/models/Patinette.dart';
 import 'package:trotinette_electrique_fablab/api/trotinette_usecase.dart';
+import 'package:trotinette_electrique_fablab/helpers/batinette_data.dart';
 
-
-IconData selectBatteryIcon(autonomy){
-  if(autonomy >= 90){
-    return Icons.battery_full;
-  }else if(autonomy >= 75 && autonomy < 90){
-    return Icons.battery_6_bar;
-  }else if(autonomy >= 60 && autonomy < 75){
-    return Icons.battery_5_bar;
-  }else if(autonomy >= 45 && autonomy < 60){
-    return Icons.battery_4_bar;
-  }else if(autonomy >= 30 && autonomy < 45){
-    return Icons.battery_3_bar;
-  }else if(autonomy >= 15 && autonomy < 30){
-    return Icons.battery_2_bar;
-  }else if(autonomy < 15 ){
-    return Icons.battery_1_bar;
-  }else if(autonomy < 5 ){
-    return Icons.battery_0_bar;
-  }
-  else{
-    return Icons.battery_0_bar;
-  }
-}
+import 'package:trotinette_electrique_fablab/helpers/calcul.dart';
 
 class InfoScreen extends StatefulWidget {
 
@@ -39,31 +19,42 @@ class InfoScreen extends StatefulWidget {
 class _InfoScreen extends State<InfoScreen> {
 
   final TrotinetteUseCase trotUseCase = TrotinetteUseCase();
-  Patinette patinette = Patinette(battery: 100, speed: 0);
+  Patinette patinette = Patinette(battery: 100, speed: 0, gear:0);
   int countDownSimulation = 0;
+
   @override
   void initState() {
     super.initState();
-    Timer _timer = new Timer.periodic(Duration(seconds: 2), (Timer timer) => getTrotinetteData());
+    Timer _timer = Timer.periodic(const Duration(seconds: 2), (Timer timer) => setTrotinetteData());
   }
 
-  void getTrotinetteData() async {
-    //fake
-    //Patinette res = Patinette(battery: 100-countDownSimulation%100, speed: math.min(countDownSimulation%25, 10));
+  Future<Patinette> getTrotinetteData() async {
+    if(GlobalsConst.isSimulation) { // fake data
+      return Patinette(battery: 100 - countDownSimulation % 100,
+          speed: math.min(countDownSimulation % 25, 10),
+          gear: 0);
+    }
+    else {
+      return await trotUseCase.getTrotinetteData();
+    }
+  }
 
-    Patinette res = await trotUseCase.getTrotinetteData();
+  void setTrotinetteData() async {
+    Patinette res = await getTrotinetteData();
+
     setState(() {
       patinette = res;
       countDownSimulation ++;
     });
+
   }
 
   @override
   Widget build(BuildContext context) {
 
     return SafeArea(child: Container(
-        margin: EdgeInsetsDirectional.only(start: 50, top: 30),
-        padding: EdgeInsetsDirectional.all(10),
+        margin: const EdgeInsetsDirectional.only(start: 50, top: 30, end: 50),
+        padding: const EdgeInsetsDirectional.all(10),
         height: 60,
         width: 90 * 3,
         decoration: BoxDecoration(
@@ -90,7 +81,7 @@ class _InfoScreen extends State<InfoScreen> {
               children: [
                 Icon(selectBatteryIcon(patinette.battery), color: Colors.white),
                 Text(
-                  patinette.battery.toString() + ' %',
+                  handleMinMax(patinette.battery, 0, 100).toString() + ' %',
                   style: const TextStyle(
                   color: Colors.white,
                   ),
