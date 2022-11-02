@@ -82,7 +82,7 @@ class _InfoScreen extends State<InfoScreen> {
             color: Colors.green,
             borderRadius: BorderRadius.circular(25),
             border: Border.all(
-              color: Colors.lightGreenAccent,
+              color: Colors.white,
               width: 2.0,
             ),
 
@@ -119,8 +119,11 @@ class _InfoScreen extends State<InfoScreen> {
                 Container(
                   margin: const EdgeInsetsDirectional.only(start: 10, end: 10),
                 ),
-                const Icon(Icons.settings , color: Colors.white),
-                Text(gear(patinette.speed).toString(),
+                const Image(
+                    image: AssetImage('Assets/gearbox.png'),
+                  height: 18,
+                ),
+                Text(' ' + gear(patinette.speed).toString(),
                   style: const TextStyle(
                     color: Colors.white,
                   ),
