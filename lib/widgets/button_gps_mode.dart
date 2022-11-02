@@ -27,11 +27,11 @@ class _ButtonGpsMode extends State<ButtonGpsMode> {
       bottom: 5.0,
       left: 5.0,
       child: Container(
-        height: 50,
-        width: 50,
+        height: 75,
+        width: 75,
         decoration: BoxDecoration(
           color: Colors.green[900],
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(90),
           border: Border.all(
             color: Colors.white,
             width: 2.0,
@@ -47,7 +47,7 @@ class _ButtonGpsMode extends State<ButtonGpsMode> {
         ),
 
         child: IconButton(
-          icon: Icon((shouldCamFollowRoad ? Icons.explore : Icons.map), color: Colors.white),
+          icon: Icon((shouldCamFollowRoad ? Icons.explore : Icons.map), color: Colors.white, size: 40),
           onPressed: (){
             widget.onPress();
             setState(() {
