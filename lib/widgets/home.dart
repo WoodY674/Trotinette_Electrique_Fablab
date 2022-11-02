@@ -30,7 +30,6 @@ class _HomePageState extends State<HomePage> {
 
   Position? _currentPosition;
   LatLng? _currentCoordinates;
-  String _currentAddress = "";
   bool _mapDisabled = false;
 
   PolylinePoints polylinePoints = PolylinePoints();
@@ -141,13 +140,17 @@ class _HomePageState extends State<HomePage> {
     log("#####################" + _currentPosition.toString());
     if (_currentPosition != null) {
       Placemark? place = await getAddressFromPos(_currentCoordinates!);
-      setState(() {
-        _currentAddress = formatAdressFromPlacemark(place!);
-      });
 
-      if(addMarker) {
-        _addMarker(_currentCoordinates!, _currentAddress);
+      try { // when no internet connection, can't use geocoding api
+        String _currentAddress = formatAdressFromPlacemark(place!);
+
+        if (addMarker) {
+          _addMarker(_currentCoordinates!, _currentAddress);
+        }
+      } catch (e) {
+        _toastError("Impossible de placer un marker sur votre destination\nconnexion internet requis");
       }
+
       _setCameraPos(_currentCoordinates!);
     }
   }
@@ -233,6 +236,7 @@ class _HomePageState extends State<HomePage> {
   }
 
 
+  //@todo : user could select a zoom value (between 15 and 10), using + - buttons
   void _setCameraPos(LatLng pos, {zoom:15.0, move:true}) async {
     setState(() {
       _camPos = CameraPosition(
@@ -255,6 +259,19 @@ class _HomePageState extends State<HomePage> {
           gravity: ToastGravity.CENTER,
           timeInSecForIosWeb: 5,
           backgroundColor: Colors.white,
+          textColor: Colors.black,
+          fontSize: 16.0
+      );
+    }
+  }
+  _toastError(String msg) {
+    if (_mapDisabled) {
+      Fluttertoast.showToast(
+          msg:msg,
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 8,
+          backgroundColor: Colors.red[700],
           textColor: Colors.black,
           fontSize: 16.0
       );

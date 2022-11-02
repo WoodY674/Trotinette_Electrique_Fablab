@@ -17,6 +17,7 @@ Future<Placemark?> getAddressFromPos(LatLng pos) async {
     Placemark place = p[0];
     return place;
   } catch (e) {
+    log("An Error occured to get places");
     print(e);
   }
   return null;
