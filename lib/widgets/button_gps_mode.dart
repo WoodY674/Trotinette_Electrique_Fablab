@@ -30,10 +30,10 @@ class _ButtonGpsMode extends State<ButtonGpsMode> {
         height: 50,
         width: 50,
         decoration: BoxDecoration(
-          color: Colors.green,
+          color: Colors.green[900],
           borderRadius: BorderRadius.circular(25),
           border: Border.all(
-            color: Colors.lightGreenAccent,
+            color: Colors.white,
             width: 2.0,
           ),
           boxShadow: [
