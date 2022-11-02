@@ -44,15 +44,14 @@ class _InfoScreen extends State<InfoScreen> {
   @override
   void initState() {
     super.initState();
-    //futurePatinette = fetchPatinette(widget.userId);
     Timer _timer = new Timer.periodic(Duration(seconds: 2), (Timer timer) => getTrotinetteData());
   }
 
   void getTrotinetteData() async {
     //fake
-    Patinette res = Patinette(battery: 100-countDownSimulation%100, speed: math.min(countDownSimulation%25, 10));
+    //Patinette res = Patinette(battery: 100-countDownSimulation%100, speed: math.min(countDownSimulation%25, 10));
 
-    //Patinette res = await trotUseCase.getTrotinetteData();
+    Patinette res = await trotUseCase.getTrotinetteData();
     setState(() {
       patinette = res;
       countDownSimulation ++;
