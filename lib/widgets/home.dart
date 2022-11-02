@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:trotinette_electrique_fablab/const.dart';
 import 'package:trotinette_electrique_fablab/widgets/Infos_patinette.dart';
 import 'package:trotinette_electrique_fablab/widgets/button_gps_mode.dart';
 import 'package:trotinette_electrique_fablab/widgets/custom_map.dart';
@@ -51,8 +52,6 @@ class _HomePageState extends State<HomePage> {
   LatLng? lastCoordinate;
   bool shouldCamFollowRoad = true;
   double speed = 0.0;
-
-  bool isSimulation = true;
   //endregion
 
   //region override function (init, dispose ...)
@@ -61,7 +60,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     destinationAddressController.addListener(_handleDestinationAddress);
     _handleUserPosition(addMarker: false);
-    //timer = Timer.periodic(Duration(seconds: 5), (Timer timer) => _handleUserPosition(addMarker: false));
+
     timer = Timer.periodic(Duration(seconds: timerTimeInterval), (Timer timer) => _handleUserPosChange());
   }
 
@@ -85,7 +84,7 @@ class _HomePageState extends State<HomePage> {
   ///   - camera could follow the user and rotate cam to heading the road
   ///   - camera could show the entire itinary with large zoom-out
   _handleUserPosChange() async {
-    if(!isSimulation) {
+    if(!GlobalsConst.isSimulation) {
       await _handleUserPosition(addMarker: false);
     }
 
@@ -95,7 +94,7 @@ class _HomePageState extends State<HomePage> {
       if(shouldCamFollowRoad){
         //check if the next point to pass is near the user
         double totalDistance = calculateDistance(currPos, polylineCoordinates[handleMinMax(currentPolylineIndex, 0, polylineCoordinates.length-1).toInt()]);
-        if ((isSimulation && totalDistance <=0.5) || totalDistance<=0.05) {
+        if ((GlobalsConst.isSimulation && totalDistance <=0.5) || totalDistance<=0.05) {
           currentPolylineIndex ++;
         }
         LatLng nextCoordinates = polylineCoordinates[handleMinMax(currentPolylineIndex, 0, polylineCoordinates.length-1).toInt()];
@@ -112,7 +111,7 @@ class _HomePageState extends State<HomePage> {
 
         //on simulation, the last coordinates is fake using a polyline item coordinates
         setState(() {
-          lastCoordinate = (isSimulation ? nextCoordinates : currPos);
+          lastCoordinate = (GlobalsConst.isSimulation ? nextCoordinates : currPos);
         });
       }
       else{
