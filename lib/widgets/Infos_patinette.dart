@@ -29,6 +29,17 @@ IconData selectBatteryIcon(autonomy){
   }
 }
 
+int gear(speed){
+  if(speed > 0 && speed <= 6 ){
+    return 1;
+  }else if(speed > 6 && speed <= 15){
+    return 2;
+  }else if(speed > 15 && speed <= 25){
+    return 3;
+  }
+  return 0;
+}
+
 class InfoScreen extends StatefulWidget {
 
   const InfoScreen({Key? key}) : super(key: key);
@@ -50,7 +61,7 @@ class _InfoScreen extends State<InfoScreen> {
 
   void getTrotinetteData() async {
     //fake
-    Patinette res = Patinette(battery: 100-countDownSimulation%100, speed: math.min(countDownSimulation%25, 10));
+    Patinette res = Patinette(battery: 100-countDownSimulation%100, speed: math.min(countDownSimulation%25, 25));
 
     //Patinette res = await trotUseCase.getTrotinetteData();
     setState(() {
@@ -103,6 +114,15 @@ class _InfoScreen extends State<InfoScreen> {
                 Text(' ' + patinette.speed.toString() + ' Km/h',
                   style: const TextStyle(
                   color: Colors.white,
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsetsDirectional.only(start: 10, end: 10),
+                ),
+                const Icon(Icons.settings , color: Colors.white),
+                Text(gear(patinette.speed).toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
                   ),
                 ),
               ],
