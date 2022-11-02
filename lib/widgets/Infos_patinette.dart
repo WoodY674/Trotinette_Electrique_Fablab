@@ -61,7 +61,7 @@ class _InfoScreen extends State<InfoScreen> {
             color: Colors.green,
             borderRadius: BorderRadius.circular(25),
             border: Border.all(
-              color: Colors.lightGreenAccent,
+              color: Colors.white,
               width: 2.0,
             ),
 
@@ -86,6 +86,7 @@ class _InfoScreen extends State<InfoScreen> {
                   color: Colors.white,
                   ),
                 ),
+
                 Container(
                   margin: const EdgeInsetsDirectional.only(start: 10, end: 10),
                 ),
@@ -93,6 +94,19 @@ class _InfoScreen extends State<InfoScreen> {
                 Text(' ' + patinette.speed.toString() + ' Km/h',
                   style: const TextStyle(
                   color: Colors.white,
+                  ),
+                ),
+
+                Container(
+                  margin: const EdgeInsetsDirectional.only(start: 10, end: 10),
+                ),
+                const Image(
+                  image: AssetImage('Assets/gearbox.png'),
+                  height: 18,
+                ),
+                Text(" " + patinette.gear.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
                   ),
                 ),
               ],

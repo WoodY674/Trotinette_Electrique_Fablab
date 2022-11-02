@@ -332,20 +332,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
 
-      /*
-      // for test purpose
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            _mapDisabled = !_mapDisabled;
-            shouldCamFollowRoad = !shouldCamFollowRoad;
-          });
-          _toastDisable();
-          currentPolylineIndex ++;
-        },
-        backgroundColor: (shouldCamFollowRoad ? Colors.green : Colors.red),
-      )
-     */
     );
   }
 
