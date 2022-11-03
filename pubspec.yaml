@@ -37,6 +37,7 @@ dependencies:
   flutter_polyline_points: ^1.0.0
   fluttertoast: ^8.0.9
   vector_math: any
+  flutter_observer: ^2.0.0
 
 
   # The following adds the Cupertino Icons font to your application.

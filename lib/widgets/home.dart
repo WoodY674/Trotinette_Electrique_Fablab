@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:flutter_observer/Observable.dart';
+import 'package:flutter_observer/Observer.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
@@ -13,6 +15,9 @@ import 'package:trotinette_electrique_fablab/widgets/custom_map.dart';
 import 'package:trotinette_electrique_fablab/widgets/destination_input.dart';
 import 'package:trotinette_electrique_fablab/helpers/calcul.dart';
 import 'package:trotinette_electrique_fablab/helpers/map.dart';
+import 'package:trotinette_electrique_fablab/helpers/notification_center.dart';
+
+import 'package:trotinette_electrique_fablab/models/Patinette.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -22,7 +27,7 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with Observer {
   //region init vars
   final destinationAddressController = TextEditingController();
   String destinationAddress = "";
@@ -45,7 +50,7 @@ class _HomePageState extends State<HomePage> {
   );
 
 
-  Timer? timer;
+  Timer? _timer;
   int timerTimeInterval = 5; // in seconds
   int currentPolylineIndex = 0;
   LatLng? lastCoordinate;
@@ -60,13 +65,27 @@ class _HomePageState extends State<HomePage> {
     destinationAddressController.addListener(_handleDestinationAddress);
     _handleUserPosition(addMarker: false);
 
-    timer = Timer.periodic(Duration(seconds: timerTimeInterval), (Timer timer) => _handleUserPosChange());
+    _timer = Timer.periodic(Duration(seconds: timerTimeInterval), (Timer timer) => _handleUserPosChange());
+    Observable.instance.addObserver(this);
+  }
+
+  @override
+  update(Observable observable, String? notifyName, Map? map) {
+    if(notifyName == NotificationCenter.trottinetteDataReceived.name){
+      if(map != null && map.keys.contains("patinette")){
+        Patinette patinette = map["patinette"];
+        if((patinette.gear > 0 && !_mapDisabled) || (patinette.gear <= 0 && _mapDisabled)){
+          _onMovement();
+        }
+      }
+    }
   }
 
   @override
   void dispose() {
     destinationAddressController.dispose();
-    timer?.cancel();
+    _timer?.cancel();
+    Observable.instance.removeObserver(this);
     super.dispose();
   }
   //endregion
@@ -251,6 +270,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  //region toast
   _toastDisable() {
     if (_mapDisabled) {
       Fluttertoast.showToast(
@@ -277,15 +297,14 @@ class _HomePageState extends State<HomePage> {
       );
     }
   }
+  //endregion
 
-//@todo : use onMovement, to enabled/disable map
   /// should be launch when the user is moving
   _onMovement(){
     setState(() {
       _mapDisabled = !_mapDisabled;
     });
     _toastDisable();
-
   }
 
   _setCameraMode(){

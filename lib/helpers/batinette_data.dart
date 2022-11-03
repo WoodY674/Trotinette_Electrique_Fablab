@@ -22,3 +22,14 @@ IconData selectBatteryIcon(autonomy){
     return Icons.battery_0_bar;
   }
 }
+
+int defineGear(speed){
+  if(speed > 0 && speed <= 6 ){
+    return 1;
+  }else if(speed > 6 && speed <= 15){
+    return 2;
+  }else if(speed > 15){
+    return 3;
+  }
+  return 0;
+}
