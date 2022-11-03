@@ -11,5 +11,5 @@ class Notification{
 }
 
 class NotificationCenter{
-  static Notification trottinetteDataReceived = Notification(name: "TrotinetteDataReceived", stateImpacted: ["_HomePageState"]);
+  static Notification trottinetteDataReceived = Notification(name: "PatinetteDataReceived", stateImpacted: ["_HomePageState"]);
 }

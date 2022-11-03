@@ -8,16 +8,16 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:trotinette_electrique_fablab/const.dart';
-import 'package:trotinette_electrique_fablab/widgets/Infos_patinette.dart';
-import 'package:trotinette_electrique_fablab/widgets/button_gps_mode.dart';
-import 'package:trotinette_electrique_fablab/widgets/custom_map.dart';
-import 'package:trotinette_electrique_fablab/widgets/destination_input.dart';
-import 'package:trotinette_electrique_fablab/helpers/calcul.dart';
-import 'package:trotinette_electrique_fablab/helpers/map.dart';
-import 'package:trotinette_electrique_fablab/helpers/notification_center.dart';
+import 'package:patinette_electrique_fablab/const.dart';
+import 'package:patinette_electrique_fablab/widgets/Infos_patinette.dart';
+import 'package:patinette_electrique_fablab/widgets/button_gps_mode.dart';
+import 'package:patinette_electrique_fablab/widgets/custom_map.dart';
+import 'package:patinette_electrique_fablab/widgets/destination_input.dart';
+import 'package:patinette_electrique_fablab/helpers/calcul.dart';
+import 'package:patinette_electrique_fablab/helpers/map.dart';
+import 'package:patinette_electrique_fablab/helpers/notification_center.dart';
 
-import 'package:trotinette_electrique_fablab/models/Patinette.dart';
+import 'package:patinette_electrique_fablab/models/Patinette.dart';
 
 
 class HomePage extends StatefulWidget {

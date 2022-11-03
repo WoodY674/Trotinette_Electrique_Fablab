@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:patinette_electrique_fablab/helpers/styles.dart';
 
 
 class ButtonGpsMode extends StatefulWidget {
@@ -29,22 +30,7 @@ class _ButtonGpsMode extends State<ButtonGpsMode> {
       child: Container(
         height: 75,
         width: 75,
-        decoration: BoxDecoration(
-          color: Colors.green[900],
-          borderRadius: BorderRadius.circular(90),
-          border: Border.all(
-            color: Colors.white,
-            width: 2.0,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 5,
-              blurRadius: 7,
-              offset: Offset(0, 3), // changes position of shadow
-            ),
-          ],
-        ),
+        decoration: getBoxDecoration(),
 
         child: IconButton(
           icon: Icon((shouldCamFollowRoad ? Icons.explore : Icons.map), color: Colors.white, size: 40),

@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:trotinette_electrique_fablab/helpers/calcul.dart';
+import 'package:patinette_electrique_fablab/helpers/calcul.dart';
 
 String formatAdressFromPlacemark(Placemark place){
   return "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";

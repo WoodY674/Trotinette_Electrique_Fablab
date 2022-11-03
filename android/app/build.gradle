@@ -45,7 +45,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.example.trotinette_electrique_fablab"
+        applicationId "com.example.patinette_electrique_fablab"
         //minSdkVersion flutter.minSdkVersion
         minSdkVersion 20
         targetSdkVersion 33// flutter.targetSdkVersion

@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.trotinette_electrique_fablab">
+    package="com.example.patinette_electrique_fablab">
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -10,7 +10,7 @@
 
     <application
 
-        android:label="trotinette_electrique_fablab"
+        android:label="patinette_electrique_fablab"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 

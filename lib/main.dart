@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:trotinette_electrique_fablab/widgets/home.dart';
+import 'package:patinette_electrique_fablab/widgets/home.dart';
 
 void main() {
   runApp(const MyApp());

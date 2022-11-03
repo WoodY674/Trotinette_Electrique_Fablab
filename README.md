@@ -1,4 +1,4 @@
-# Trotinette_Electrique_Fablab
+# Patinette_Electrique_Fablab
 Ceci est un Projet de d'électrification d'une trottinette, 
 connectée afin de récupérer des informations telles que 
 le niveau de batterie, la vitesse et la vitesse enclenchée.
@@ -16,7 +16,7 @@ durant notre année de M1 M2i lead dev
 # Application Flutter
 L'application est constituée d'un unique écran proposant :
 - Un GPS permettant de définir son itinéraire via une Google Map
-- l'affichage des informations récupérées sur la trotinette
+- l'affichage des informations récupérées sur la patinette
 - Un mode de suivi du parcours :
   - centré sur l'utilisateur, avec orientation de la map vers le prochain point à atteindre
   - centré sur l'itinéraire, avec une vue d'ensemble du parcours à effectuer
@@ -35,7 +35,7 @@ lancé via un service (crée avec l'utilisation du script `write_service.sh`) ou
 la commande python `python3 app.py`.
 
 # Arduino
-Pour récuperer des données sur la trotinette tel que l'autonomie restante
+Pour récuperer des données sur la patinette tel que l'autonomie restante
 et la vitesse enclenchée, nous devons traiter des données brutes de la 
 batterie (voltage).
 
@@ -46,6 +46,6 @@ on peut en déduire son autonomie restante.
 
 En connaissant les valeurs des voltages délivrés pour chaque vitesse enclenchée,
 on peut en déduire laquelle est actuellement utilisé, et donc également en 
-déduire la vitesse de la trotinette
+déduire la vitesse de la patinette
 
 Les scripts sont disponibles dans le dossier `addon/arduino/`
