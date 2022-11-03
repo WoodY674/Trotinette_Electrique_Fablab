@@ -94,16 +94,21 @@ class _InfoScreenState extends State<InfoScreen> with Observer{
   }
   //endregion
 
-  Widget getWidgetDataPatinetteUnit(String text){
+  Widget getWidgetDataPatinetteUnit(String text, {fontSize:32.0}){
     return Container(
       margin: const EdgeInsetsDirectional.only(start: 2, end: 15),
       child: Text( text,
-        style: const TextStyle(
+        style: TextStyle(
           color: Colors.white,
-          fontSize: 32.0,
+          fontSize: fontSize,
         ),
       ),
     );
+  }
+
+  double adaptFontSizeOnDataPatinette(){
+    int nbVariableChars = patinette.speed.abs().toString().length + patinette.battery.toString().length;
+    return math.min(32.0, 32.0 + ((4 - nbVariableChars) * 3));
   }
 
   @override
@@ -121,22 +126,22 @@ class _InfoScreenState extends State<InfoScreen> with Observer{
           children: [
             Icon(selectBatteryIcon(patinette.battery), color: Colors.white, size: 24,),
             Text( handleMinMax(patinette.battery, 0, 100).toString(),
-              style: getTextStyleDataPatinette()
+              style: getTextStyleDataPatinette(fontSize: adaptFontSizeOnDataPatinette())
             ),
-            getWidgetDataPatinetteUnit("%"),
+            getWidgetDataPatinetteUnit("%", fontSize: adaptFontSizeOnDataPatinette()),
 
             const Icon(Icons.speed, color: Colors.white, size: 24),
             Text(' ' + patinette.speed.toString(),
-              style: getTextStyleDataPatinette()
+              style: getTextStyleDataPatinette(fontSize: adaptFontSizeOnDataPatinette())
             ),
-            getWidgetDataPatinetteUnit("Km/h"),
+            getWidgetDataPatinetteUnit("Km/h", fontSize: adaptFontSizeOnDataPatinette()),
 
             const Image(
               image: AssetImage('Assets/gearbox.png'),
               height: 20,
             ),
             Text(" " + patinette.gear.toString(),
-              style: getTextStyleDataPatinette()
+              style: getTextStyleDataPatinette(fontSize: adaptFontSizeOnDataPatinette())
             ),
           ],
         ),

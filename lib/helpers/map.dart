@@ -70,7 +70,7 @@ moveCameraWithAngle(Completer<GoogleMapController> mapController,LatLng targetCo
       CameraUpdate.newCameraPosition(
           CameraPosition(
               target: targetCoordinates,
-              zoom: 20,
+              zoom: 18,
               bearing: angleFromLatLng(targetCoordinates, nextCoordinates)
           )
       )
