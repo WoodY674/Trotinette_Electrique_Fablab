@@ -12,4 +12,5 @@ class Notification{
 
 class NotificationCenter{
   static Notification trottinetteDataReceived = Notification(name: "PatinetteDataReceived", stateImpacted: ["_HomePageState"]);
+  static Notification speedCalculated = Notification(name: "SpeedCalculated", stateImpacted: ["_InfoScreenState"]);
 }

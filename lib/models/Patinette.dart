@@ -1,9 +1,9 @@
 class Patinette {
-  final int battery;
-  final int speed;
-  final int gear;
+  int battery;
+  int speed;
+  int gear;
 
-  const Patinette({
+  Patinette({
     required this.battery,
     required this.speed,
     required this.gear,

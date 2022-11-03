@@ -8,6 +8,7 @@ double calculateDistance(LatLng pos1, LatLng pos2){
   double a = 0.5 - Math.cos((pos2.latitude - pos1.latitude) * p) / 2
       + Math.cos(pos1.latitude * p) * Math.cos(pos2.latitude * p)
           * (1 - Math.cos((pos2.longitude - pos1.longitude) * p)) /2;
+  
   return 12742 * Math.asin(Math.sqrt(a));
 }
 

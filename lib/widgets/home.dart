@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_observer/Observable.dart';
-import 'package:flutter_observer/Observer.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:patinette_electrique_fablab/const.dart';
+import 'package:patinette_electrique_fablab/helpers/batinette_data.dart';
 import 'package:patinette_electrique_fablab/widgets/Infos_patinette.dart';
 import 'package:patinette_electrique_fablab/widgets/button_gps_mode.dart';
 import 'package:patinette_electrique_fablab/widgets/custom_map.dart';
@@ -16,8 +16,6 @@ import 'package:patinette_electrique_fablab/widgets/destination_input.dart';
 import 'package:patinette_electrique_fablab/helpers/calcul.dart';
 import 'package:patinette_electrique_fablab/helpers/map.dart';
 import 'package:patinette_electrique_fablab/helpers/notification_center.dart';
-
-import 'package:patinette_electrique_fablab/models/Patinette.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -27,7 +25,7 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with Observer {
+class _HomePageState extends State<HomePage> {
   //region init vars
   final destinationAddressController = TextEditingController();
   String destinationAddress = "";
@@ -51,7 +49,7 @@ class _HomePageState extends State<HomePage> with Observer {
 
 
   Timer? _timer;
-  int timerTimeInterval = 5; // in seconds
+  int timerTimeInterval = 2; // in seconds
   int currentPolylineIndex = 0;
   LatLng? lastCoordinate;
   bool shouldCamFollowRoad = true;
@@ -66,26 +64,12 @@ class _HomePageState extends State<HomePage> with Observer {
     _handleUserPosition(addMarker: false);
 
     _timer = Timer.periodic(Duration(seconds: timerTimeInterval), (Timer timer) => _handleUserPosChange());
-    Observable.instance.addObserver(this);
-  }
-
-  @override
-  update(Observable observable, String? notifyName, Map? map) {
-    if(notifyName == NotificationCenter.trottinetteDataReceived.name){
-      if(map != null && map.keys.contains("patinette")){
-        Patinette patinette = map["patinette"];
-        if((patinette.gear > 0 && !_mapDisabled) || (patinette.gear <= 0 && _mapDisabled)){
-          _onMovement();
-        }
-      }
-    }
   }
 
   @override
   void dispose() {
     destinationAddressController.dispose();
     _timer?.cancel();
-    Observable.instance.removeObserver(this);
     super.dispose();
   }
   //endregion
@@ -125,7 +109,14 @@ class _HomePageState extends State<HomePage> with Observer {
         }
 
         moveCameraWithAngle(_mapController, lastCoordinate!, nextCoordinates);
-        _setSpeed(currPos, lastCoordinate!);
+        //region speed and gear
+        _setSpeed((GlobalsConst.isSimulation ? nextCoordinates :  currPos), lastCoordinate!);
+        int gear = defineGear(speed);
+        if((gear > 0 && !_mapDisabled) || (gear <= 0 && _mapDisabled)){
+          _onMovement();
+        }
+        Observable.instance.notifyObservers(NotificationCenter.speedCalculated.stateImpacted, notifyName: NotificationCenter.speedCalculated.name, map: {"speed":speed, "gear":gear});
+        //endregion
 
         //on simulation, the last coordinates is fake using a polyline item coordinates
         setState(() {
