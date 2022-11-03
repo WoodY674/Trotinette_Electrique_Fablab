@@ -1,6 +1,6 @@
 
 class GlobalsConst{
-  static const isSimulation = true;
+  static const isSimulation = false;
 
   static final GlobalsConst _instance = GlobalsConst._internal();
   factory GlobalsConst() {
