@@ -51,7 +51,8 @@ isEmptyValue(dynamic val){
 
 class Api{
   final http.Client client = http.Client();
-  final host = "http://10.42.0.1:5000/";
+  final host = "http://172.20.10.3:5000/";
+  //final host = "http://10.42.0.1:5000/";
   var mainHeader = {
     'Content-type': "application/json; charset=UTF-8"
   };
