@@ -49,7 +49,7 @@ class _HomePageState extends State<HomePage> {
 
 
   Timer? _timer;
-  int timerTimeInterval = 2; // in seconds
+  int timerTimeInterval = 1; // in seconds
   int currentPolylineIndex = 0;
   LatLng? lastCoordinate;
   bool shouldCamFollowRoad = true;

@@ -38,6 +38,7 @@ dependencies:
   fluttertoast: ^8.0.9
   vector_math: any
   flutter_observer: ^2.0.0
+  flutter_launcher_icons: "^0.10.0" #"^0.9.2"
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -57,6 +58,11 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/batinette_logo_64.png"
 
 # The following section is specific to Flutter.
 flutter:

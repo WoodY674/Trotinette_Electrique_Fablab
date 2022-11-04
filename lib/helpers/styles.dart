@@ -20,9 +20,9 @@ BoxDecoration getBoxDecoration(){
   );
 }
 
-TextStyle getTextStyleDataPatinette(){
-  return const TextStyle(
+TextStyle getTextStyleDataPatinette({fontSize:32.0}){
+  return TextStyle(
     color: Colors.white,
-    fontSize: 32.0,
+    fontSize: fontSize,
   );
 }

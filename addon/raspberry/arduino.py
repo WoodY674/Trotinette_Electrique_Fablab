@@ -7,7 +7,8 @@ import serial,time
 
 
 def get_battery():
-    answer = 101
+    # used to make an average, because sometimes arduino return strange values, ex 58% then 8%
+    values = []
     print('Running. Press CTRL-C to exit.')
     try:
         with serial.Serial("/dev/ttyACM0", 9600, timeout=1) as arduino:
@@ -16,23 +17,20 @@ def get_battery():
                 print("{} connected!".format(arduino.port))
                 try:
                     print("HERE arduino ---- ", arduino)
-                    while answer == 101:
-                        result = arduino.readline().stip().decode("utf-8")
-                        #result = result.strip()
-                        #result = result.decode("utf-8")
+                    while values.length < 20 :
+                        result = arduino.readline().strip().decode("utf-8")
                         if isinstance(result, str):
                             if result == "":
                                 continue
                             result = int(result)
 
                         if(isinstance(result, int) and result > 0 and result <= 100):
-                            answer = result
-                        #print(answer)
+                            values.append(result)
                 except KeyboardInterrupt as err:
                     print("KeyboardInterrupt has been caught.", err)
     except Exception as err:
         print("ARDUINO ERROR ", err)
-    return(answer)
+    return(round(sum(values) / len(values)))
 
 if __name__ == "__main__":
     print("get battery fro testArduino", get_battery())
